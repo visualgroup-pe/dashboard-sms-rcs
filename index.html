@@ -87,6 +87,29 @@ td.sep,th.sep{border-left:1px solid var(--grid)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .themebtn{min-width:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--axis);background:var(--surface);color:var(--ink-2);border-radius:8px;padding:5px 9px;font:inherit;cursor:pointer}
 .empty{padding:30px;text-align:center;color:var(--muted)}
+/* KVs y links */
+.kvgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.kvcard h2{font-size:16px;margin:0 0 12px}
+.ch{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.ch:first-of-type{margin-top:0}
+.ch .badge{background:var(--surface-2);color:var(--ink-2);border-radius:999px;padding:1px 8px;letter-spacing:0;text-transform:none;font-weight:600}
+.kvimg{display:block;width:100%;aspect-ratio:770/335;object-fit:cover;border-radius:8px;border:1px solid var(--border);background:var(--surface-2)}
+.kvtxt{margin-top:8px}
+.kvtxt .t{font-weight:700}
+.kvtxt .d{color:var(--ink-2);margin-top:2px}
+.btnpill{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;border:1px solid var(--axis);border-radius:999px;padding:2px 10px;color:var(--ink-2)}
+.meta{font-size:12px;color:var(--muted);margin-top:6px}
+.lnk{display:block;font-size:12.5px;word-break:break-all;color:var(--accent);margin-top:6px}
+.tenor{background:var(--surface-2);border-radius:8px;padding:10px 12px;font-size:13.5px}
+.others{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.other{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:start;font-size:12.5px;color:var(--ink-2)}
+.other.notimg{grid-template-columns:minmax(0,1fr)}
+.other img{width:96px;aspect-ratio:770/335;object-fit:cover;border-radius:5px;border:1px solid var(--border)}
+details summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);margin-top:10px}
+.alert{border-left:3px solid var(--down);margin-bottom:14px}
+.alert h2{font-size:15px;margin:0 0 6px}
+.alert p{margin:0 0 10px;color:var(--ink-2)}
+@media (max-width:900px){.kvgrid{grid-template-columns:minmax(0,1fr)}}
 footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direction:column;gap:6px}
 .credit{color:var(--ink-2);font-size:12.5px}
 .credit a{color:inherit;text-decoration:underline;text-decoration-color:var(--axis);text-underline-offset:2px}
@@ -114,6 +137,7 @@ footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direc
         <button class="tab" role="tab" data-v="rcs" aria-selected="false">RCS</button>
         <button class="tab" role="tab" data-v="all" aria-selected="false">Consolidado</button>
         <button class="tab" role="tab" data-v="cmp" aria-selected="false">Comparativo</button>
+        <button class="tab" role="tab" data-v="kv" aria-selected="false">KVs y links</button>
       </div>
       <button class="themebtn" id="themeBtn" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
     </div>
@@ -463,9 +487,62 @@ function viewCmp(){
     {label:'Periodo B', data:prods.map(p=>gB.has(p)?agg(gB.get(p)).cta:null), backgroundColor:css('--s2')}], fCTA));
 }
 
+// KVs y links actuales por producto
+function viewKV(){
+  const v = $('#view'); v.innerHTML='';
+  const C = DATA.creativos || {};
+  const rc = C.rcs || {items:[],alertas:[]}, sc = C.sms || {items:[],alertas:[]};
+  const rng = c => c.desde ? `${fDate(c.desde)} – ${fDate(c.hasta)}` : 'sin datos';
+  v.append(el('div',{class:'note'}, `Creativos programados en los últimos 7 días de cada canal. RCS: ${rng(rc)} · SMS / SAT PUSH: ${rng(sc)}. El primero de cada producto es el más reciente.`));
+  if (rc.alertas && rc.alertas.length){
+    const a = el('div',{class:'card alert'});
+    a.append(el('h2',{},`⚠ ${rc.alertas.length} envíos RCS con UTM que no coincide con su fecha o base`));
+    a.append(el('p',{},'Los leads de estos envíos pueden estar quedando registrados en otra campaña. Revisa la URL en la hoja Conversaciones 2026.'));
+    const tb = el('tbody',{}, ...rc.alertas.map(x=>el('tr',{}, el('td',{},fDate(x.fecha)), el('td',{},x.hora), el('td',{},x.base), el('td',{},x.producto), el('td',{},'UTM con '+x.detalle))));
+    a.append(el('details',{}, el('summary',{},'Ver detalle'), el('div',{class:'tablewrap'}, el('table',{}, el('thead',{}, el('tr',{}, ...['Fecha','Hora','Base','Producto','Problema'].map(h=>el('th',{},h)))), tb))));
+    v.append(a);
+  }
+  const prods = [...new Set([...rc.items, ...sc.items].map(i=>i.producto))].sort();
+  const grid = el('div',{class:'kvgrid'});
+  const rango = i => i.desde===i.hasta ? fDate(i.desde) : `${fDate(i.desde)} – ${fDate(i.hasta)}`;
+  const landing = u => el('a',{class:'lnk', href:u, target:'_blank', rel:'noopener'}, u.replace('https://',''));
+  for (const p of prods){
+    const card = el('div',{class:'card kvcard'}, el('h2',{},p));
+    const r = rc.items.filter(i=>i.producto===p), s = sc.items.filter(i=>i.producto===p);
+    if (r.length){
+      const [cur, ...rest] = r;
+      card.append(el('div',{class:'ch'}, 'RCS · KV actual', el('span',{class:'badge'}, rango(cur))));
+      if (cur.imagen) card.append(el('a',{href:cur.imagen, target:'_blank', rel:'noopener'}, el('img',{class:'kvimg', src:cur.imagen, alt:'KV '+p, loading:'lazy'})));
+      card.append(el('div',{class:'kvtxt'}, el('div',{class:'t'},cur.llamado||''), el('div',{class:'d'},cur.desc||''), cur.boton?el('span',{class:'btnpill'},cur.boton):null));
+      cur.landings.forEach(u=>card.append(landing(u)));
+      card.append(el('div',{class:'meta'}, `${cur.envios} envíos · bases ${cur.bases.join(', ')}`));
+      if (rest.length){
+        card.append(el('details',{}, el('summary',{},`Otros ${rest.length} en la semana`),
+          el('div',{class:'others'}, ...rest.map(o=>el('div',{class:'other'}, o.imagen?el('img',{src:o.imagen, alt:'', loading:'lazy'}):el('span'), el('div',{}, el('div',{},o.llamado||''), el('div',{class:'meta'}, `${rango(o)} · ${o.envios} envíos`)))))));
+      }
+    }
+    if (s.length){
+      const [cur, ...rest] = s;
+      card.append(el('div',{class:'ch'}, 'SMS / SAT PUSH · tenor actual', el('span',{class:'badge'}, rango(cur))));
+      card.append(el('div',{class:'tenor'}, cur.tenor||''));
+      cur.landings.forEach(u=>card.append(landing(u)));
+      card.append(el('div',{class:'meta'}, `${cur.tipos.join(' / ')} · ${cur.envios} envíos${cur.ultimo_link?' · último link: '+cur.ultimo_link:''}`));
+      if (rest.length){
+        card.append(el('details',{}, el('summary',{},`Otros ${rest.length} tenores en la semana`),
+          el('div',{class:'others'}, ...rest.map(o=>el('div',{class:'other notimg'}, el('div',{}, el('div',{},o.tenor||''), el('div',{class:'meta'}, `${rango(o)} · ${o.tipos.join(' / ')} · ${o.envios} envíos`)))))));
+      }
+    }
+    grid.append(card);
+  }
+  v.append(grid);
+}
+
 function update(){
   killCharts();
-  renderFilters();
+  if (S.view!=='kv') renderFilters();
+  try { localStorage.setItem('dash-view', S.view); } catch(e){}
+  $('#filters').hidden = S.view==='kv';
+  if (S.view==='kv') return viewKV();
   if (S.view==='cmp') viewCmp(); else if (S.view==='all') viewAll(); else viewCanal();
   try { localStorage.setItem('dash-view', S.view); } catch(e){}
 }
@@ -505,7 +582,7 @@ fetch('data.json?v='+Date.now(), {cache:'no-store'}).then(r=>r.json()).then(d=>{
   // comparativo por defecto: mes anterior vs mes actual
   S.A = {from:pr[1][1], to:pr[1][2]}; S.B = {from:pr[0][1], to:pr[0][2]};
   let v='sms'; try{ v = localStorage.getItem('dash-view')||'sms'; }catch(e){}
-  setView(['sms','rcs','all','cmp'].includes(v)?v:'sms');
+  setView(['sms','rcs','all','cmp','kv'].includes(v)?v:'sms');
 }).catch(e=>{ $('#updated').textContent='No se pudo cargar data.json: '+e.message; });
 
 })();
