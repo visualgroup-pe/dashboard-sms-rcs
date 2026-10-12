@@ -106,9 +106,6 @@ td.sep,th.sep{border-left:1px solid var(--grid)}
 .other.notimg{grid-template-columns:minmax(0,1fr)}
 .other img{width:96px;aspect-ratio:770/335;object-fit:cover;border-radius:5px;border:1px solid var(--border)}
 details summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);margin-top:10px}
-.alert{border-left:3px solid var(--down);margin-bottom:14px}
-.alert h2{font-size:15px;margin:0 0 6px}
-.alert p{margin:0 0 10px;color:var(--ink-2)}
 @media (max-width:900px){.kvgrid{grid-template-columns:minmax(0,1fr)}}
 footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direction:column;gap:6px}
 .credit{color:var(--ink-2);font-size:12.5px}
@@ -491,17 +488,9 @@ function viewCmp(){
 function viewKV(){
   const v = $('#view'); v.innerHTML='';
   const C = DATA.creativos || {};
-  const rc = C.rcs || {items:[],alertas:[]}, sc = C.sms || {items:[],alertas:[]};
+  const rc = C.rcs || {items:[]}, sc = C.sms || {items:[]};
   const rng = c => c.desde ? `${fDate(c.desde)} – ${fDate(c.hasta)}` : 'sin datos';
   v.append(el('div',{class:'note'}, `Creativos programados en los últimos 7 días de cada canal. RCS: ${rng(rc)} · SMS / SAT PUSH: ${rng(sc)}. El primero de cada producto es el más reciente.`));
-  if (rc.alertas && rc.alertas.length){
-    const a = el('div',{class:'card alert'});
-    a.append(el('h2',{},`⚠ ${rc.alertas.length} envíos RCS con UTM que no coincide con su fecha o base`));
-    a.append(el('p',{},'Los leads de estos envíos pueden estar quedando registrados en otra campaña. Revisa la URL en la hoja Conversaciones 2026.'));
-    const tb = el('tbody',{}, ...rc.alertas.map(x=>el('tr',{}, el('td',{},fDate(x.fecha)), el('td',{},x.hora), el('td',{},x.base), el('td',{},x.producto), el('td',{},'UTM con '+x.detalle))));
-    a.append(el('details',{}, el('summary',{},'Ver detalle'), el('div',{class:'tablewrap'}, el('table',{}, el('thead',{}, el('tr',{}, ...['Fecha','Hora','Base','Producto','Problema'].map(h=>el('th',{},h)))), tb))));
-    v.append(a);
-  }
   const prods = [...new Set([...rc.items, ...sc.items].map(i=>i.producto))].sort();
   const grid = el('div',{class:'kvgrid'});
   const rango = i => i.desde===i.hasta ? fDate(i.desde) : `${fDate(i.desde)} – ${fDate(i.hasta)}`;
