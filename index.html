@@ -87,6 +87,8 @@ td.sep,th.sep{border-left:1px solid var(--grid)}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direction:column;gap:6px}
 .credit{color:var(--ink-2);font-size:12.5px}
+.credit a{color:inherit;text-decoration:underline;text-decoration-color:var(--axis);text-underline-offset:2px}
+.credit a:hover{color:var(--accent);text-decoration-color:currentColor}
 @media (max-width:900px){
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .grid2,.grid2.eq,.cmp-periods{grid-template-columns:minmax(0,1fr)}
@@ -138,7 +140,7 @@ footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direc
 
   <footer>
     <div>CTA = Leads ÷ Q base · %Efect = PV ÷ Leads. CTA y %Efect se calculan solo sobre los envíos que ya tienen leads reportados.</div>
-    <div class="credit">Desarrollado por <strong>Mathías Guevara</strong> - Analista de Marketing Digital</div>
+    <div class="credit">Desarrollado por <a href="https://www.linkedin.com/in/math%C3%ADas-guevara-17032324a" target="_blank" rel="noopener"><strong>Mathías Guevara</strong></a> - Analista de Marketing Digital</div>
   </footer>
 </div>
 
