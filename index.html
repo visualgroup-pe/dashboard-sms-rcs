@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard SMS · RCS</title>
+<style>
+:root{
+  color-scheme: light;
+  --page:#f6f6f3; --surface:#fcfcfb; --surface-2:#f0efec;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#7a7873;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --accent:#2a78d6; --accent-ink:#fff;
+  --up:#006300; --down:#c03030;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#262624;
+    --ink:#f0efec; --ink-2:#c3c2b7; --muted:#8f8d87;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+    --accent:#3987e5; --accent-ink:#fff; --up:#0ca30c; --down:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#262624;
+  --ink:#f0efec; --ink-2:#c3c2b7; --muted:#8f8d87;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+  --accent:#3987e5; --accent-ink:#fff; --up:#0ca30c; --down:#e66767;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px;flex-wrap:wrap}
+.tab{border:0;background:transparent;color:var(--ink-2);padding:7px 14px;border-radius:9px;font:inherit;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.filters{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-start;margin-bottom:14px}
+.fgroup{display:flex;flex-direction:column;gap:6px;min-width:0}
+.flabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+input[type=date],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:5px 8px}
+.chip{font:inherit;font-size:12.5px;border:1px solid var(--axis);background:var(--surface);color:var(--ink-2);padding:4px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.ghost{border-style:dashed}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.kpi .n{font-size:12px;color:var(--ink-2);margin-top:2px}
+.note{font-size:12.5px;color:var(--ink-2);margin:-4px 0 14px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+.grid2.eq{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ctitle{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.ctitle h2{font-size:15px;margin:0}
+.ctitle .hint{font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:280px}
+.tablewrap{overflow-x:auto;margin-top:2px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{font-size:11.5px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--axis)}
+thead tr.grp th{color:var(--ink-2);font-size:12px;text-align:center;border-bottom:1px solid var(--grid)}
+thead tr.grp th:first-child{text-align:left}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+tr.total td{font-weight:700;border-top:1px solid var(--axis);border-bottom:0}
+td.sep,th.sep{border-left:1px solid var(--grid)}
+.up{color:var(--up)} .down{color:var(--down)}
+.pend{color:var(--muted)}
+.section{margin-bottom:14px}
+.cmp-periods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.pA{border-top:3px solid var(--s1)} .pB{border-top:3px solid var(--s2)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.themebtn{min-width:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--axis);background:var(--surface);color:var(--ink-2);border-radius:8px;padding:5px 9px;font:inherit;cursor:pointer}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+footer{color:var(--muted);font-size:12px;margin-top:20px;display:flex;flex-direction:column;gap:6px}
+.credit{color:var(--ink-2);font-size:12.5px}
+@media (max-width:900px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.grid2.eq,.cmp-periods{grid-template-columns:minmax(0,1fr)}
+  .kpi .v{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Dashboard SMS · RCS</h1>
+      <div class="sub" id="updated">Cargando datos…</div>
+    </div>
+    <div class="row">
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" data-v="sms" aria-selected="true">SMS</button>
+        <button class="tab" role="tab" data-v="rcs" aria-selected="false">RCS</button>
+        <button class="tab" role="tab" data-v="all" aria-selected="false">Consolidado</button>
+        <button class="tab" role="tab" data-v="cmp" aria-selected="false">Comparativo</button>
+      </div>
+      <button class="themebtn" id="themeBtn" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+    </div>
+  </header>
+
+  <div class="card filters" id="filters">
+    <div class="fgroup" id="gDates">
+      <span class="flabel">Periodo</span>
+      <div class="row">
+        <input type="date" id="dFrom"> <span class="pend">a</span> <input type="date" id="dTo">
+      </div>
+      <div class="row" id="presets"></div>
+    </div>
+    <div class="fgroup" id="gCanal" hidden>
+      <span class="flabel">Canal</span>
+      <div class="row" id="fCanal"></div>
+    </div>
+    <div class="fgroup">
+      <span class="flabel">Producto</span>
+      <div class="row" id="fProd"></div>
+    </div>
+    <div class="fgroup" id="gTipo">
+      <span class="flabel" id="tipoLabel">Tipo</span>
+      <div class="row" id="fTipo"></div>
+    </div>
+  </div>
+
+  <main id="view"></main>
+
+  <footer>
+    <div>CTA = Leads ÷ Q base · %Efect = PV ÷ Leads. CTA y %Efect se calculan solo sobre los envíos que ya tienen leads reportados.</div>
+    <div class="credit">Desarrollado por <strong>Mathías Guevara</strong> - Analista de Marketing Digital</div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(() => {
+'use strict';
+// ---------- estado ----------
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+const S = { view:'sms', from:null, to:null, prods:new Set(), tipos:new Set(), canales:new Set(['SMS','RCS']),
+            A:{from:null,to:null}, B:{from:null,to:null}, cmpCanal:'SMS',
+            trendMetric:'leads', trendGrain:'mes', baseSort:{k:'leads',d:-1} };
+let DATA = null, ROWS = {sms:[], rcs:[]}, charts = [];
+
+const $ = s => document.querySelector(s);
+const el = (t, a={}, ...k) => { const e=document.createElement(t); for (const [x,y] of Object.entries(a)) { if (x==='class') e.className=y; else if (x.startsWith('on')) e.addEventListener(x.slice(2),y); else e.setAttribute(x,y);} for (const c of k.flat()) if (c!=null) e.append(c.nodeType?c:document.createTextNode(c)); return e; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ---------- formato ----------
+const nf0 = new Intl.NumberFormat('es-PE',{maximumFractionDigits:0});
+const fInt = v => v==null||isNaN(v) ? '—' : nf0.format(v);
+const fPct = (v,d=1) => v==null||!isFinite(v) ? '—' : (v*100).toLocaleString('es-PE',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const fCTA = v => fPct(v,4);
+const fBig = v => v>=1e6 ? (v/1e6).toLocaleString('es-PE',{maximumFractionDigits:1})+' M' : fInt(v);
+const fDate = s => { const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+const mesKey = s => s.slice(0,7);
+const mesLbl = k => MESES[+k.slice(5,7)-1]+' '+k.slice(2,4);
+const iso = d => d.toISOString().slice(0,10);
+
+// ---------- agregación ----------
+function agg(rows){
+  let q=0,qr=0,l=0,pv=0,n=0,np=0;
+  for (const r of rows){ n++; q+=r.qbase; if (r.leads==null){np++; continue;} qr+=r.qbase; l+=r.leads; pv+=(r.pv||0); }
+  return {n, np, q, qr, leads:l, pv, cta: qr? l/qr : null, ef: l? pv/l : null};
+}
+function groupBy(rows, fn){ const m=new Map(); for (const r of rows){ const k=fn(r); if(!m.has(k)) m.set(k,[]); m.get(k).push(r);} return m; }
+
+function baseRows(){
+  if (S.view==='sms') return ROWS.sms;
+  if (S.view==='rcs') return ROWS.rcs;
+  return [...(S.canales.has('SMS')?ROWS.sms:[]), ...(S.canales.has('RCS')?ROWS.rcs:[])];
+}
+function filt(rows, from=S.from, to=S.to){
+  return rows.filter(r => r.fecha>=from && r.fecha<=to && S.prods.has(r.producto) && (S.view==='all'||S.view==='cmp'||S.tipos.has(r.tipo)));
+}
+
+// ---------- filtros UI ----------
+function chipSet(container, values, set, onChange){
+  container.innerHTML='';
+  const all = el('button',{class:'chip ghost', onclick:()=>{ const on = set.size!==values.length; set.clear(); if(on) values.forEach(v=>set.add(v)); onChange(); }}, 'Todos');
+  container.append(all);
+  for (const v of values){
+    container.append(el('button',{class:'chip','aria-pressed':String(set.has(v)), onclick:()=>{ set.has(v)?set.delete(v):set.add(v); onChange(); }}, v));
+  }
+}
+function presetsFor(target, rowsAll, cb){
+  const max = rowsAll.reduce((a,r)=>r.fecha>a?r.fecha:a,'2000-01-01');
+  const min = rowsAll.reduce((a,r)=>r.fecha<a?r.fecha:a,'2999-12-31');
+  const today = iso(new Date());
+  const ref = today < max ? today : max;
+  const y=+ref.slice(0,4), m=+ref.slice(5,7);
+  const first = (yy,mm)=> `${yy}-${String(mm).padStart(2,'0')}-01`;
+  const last = (yy,mm)=> iso(new Date(Date.UTC(yy,mm,0)));
+  const pm = m===1?[y-1,12]:[y,m-1];
+  const d30 = iso(new Date(Date.parse(ref)-29*864e5));
+  return [
+    ['Mes actual', first(y,m), last(y,m)],
+    ['Mes anterior', first(...pm), last(...pm)],
+    ['Últimos 30 días', d30, ref],
+    ['Todo', min, max],
+  ];
+}
+
+function renderFilters(){
+  const isCmp = S.view==='cmp', isAll = S.view==='all';
+  $('#gDates').hidden = isCmp;
+  $('#gCanal').hidden = !isAll;
+  $('#gTipo').hidden = isAll || isCmp;
+  const rows = S.view==='rcs'?ROWS.rcs: S.view==='sms'?ROWS.sms:[...ROWS.sms,...ROWS.rcs];
+  // productos
+  const prods = [...new Set(rows.map(r=>r.producto))].sort();
+  chipSet($('#fProd'), prods, S.prods, update);
+  // tipos
+  if (!isAll && !isCmp){
+    const tipos = [...new Set(rows.map(r=>r.tipo))].sort();
+    $('#tipoLabel').textContent = S.view==='rcs' ? 'Pool' : 'Tipo';
+    chipSet($('#fTipo'), tipos, S.tipos, update);
+  }
+  if (isAll) chipSet($('#fCanal'), ['SMS','RCS'], S.canales, update);
+  // fechas
+  $('#dFrom').value=S.from; $('#dTo').value=S.to;
+  const pr = $('#presets'); pr.innerHTML='';
+  for (const [lbl,a,b] of presetsFor(null, rows)){
+    pr.append(el('button',{class:'chip','aria-pressed':String(S.from===a&&S.to===b), onclick:()=>{S.from=a;S.to=b;update();}}, lbl));
+  }
+}
+
+// ---------- charts ----------
+function killCharts(){ charts.forEach(c=>c.destroy()); charts=[]; }
+function baseOpts(fmt){
+  const ink2=css('--ink-2'), muted=css('--muted'), grid=css('--grid');
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{ legend:{display:false},
+      tooltip:{ backgroundColor:css('--surface'), titleColor:css('--ink'), bodyColor:ink2, borderColor:css('--axis'), borderWidth:1, padding:10, boxPadding:4,
+        callbacks:{ label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}` } } },
+    scales:{
+      x:{ grid:{display:false}, ticks:{color:muted, maxRotation:0, autoSkip:true, font:{size:11}}, border:{color:css('--axis')} },
+      y:{ beginAtZero:true, grid:{color:grid}, border:{display:false}, ticks:{color:muted, font:{size:11}, callback:v=>fmt(v)} }
+    }
+  };
+}
+function barChart(canvas, labels, datasets, fmt, extra={}){
+  const o = baseOpts(fmt);
+  if (datasets.length>1) o.plugins.legend = {display:true, position:'top', align:'end', labels:{color:css('--ink-2'), boxWidth:10, boxHeight:10, useBorderRadius:true, borderRadius:3, font:{size:12}}};
+  Object.assign(o, extra);
+  const c = new Chart(canvas, {type:'bar', data:{labels, datasets:datasets.map(d=>({borderRadius:4, borderSkipped:'start', maxBarThickness:38, categoryPercentage:.75, barPercentage:.9, ...d}))}, options:o});
+  charts.push(c); return c;
+}
+function lineChart(canvas, labels, datasets, fmt){
+  const o = baseOpts(fmt);
+  if (datasets.length>1) o.plugins.legend = {display:true, position:'top', align:'end', labels:{color:css('--ink-2'), boxWidth:10, boxHeight:10, font:{size:12}}};
+  const c = new Chart(canvas, {type:'line', data:{labels, datasets:datasets.map(d=>({borderWidth:2, pointRadius:labels.length>40?0:3, pointHoverRadius:5, tension:.25, spanGaps:true, ...d}))}, options:o});
+  charts.push(c); return c;
+}
+
+const METRICS = {
+  leads:{lbl:'Leads', fmt:fInt, get:a=>a.leads},
+  cta:{lbl:'CTA', fmt:fCTA, get:a=>a.cta},
+  ef:{lbl:'%Efect', fmt:v=>fPct(v), get:a=>a.ef},
+  pv:{lbl:'PV', fmt:fInt, get:a=>a.pv},
+  q:{lbl:'Envíos (Q base)', fmt:fBig, get:a=>a.q},
+};
+function grainKey(fecha, g){
+  if (g==='mes') return mesKey(fecha);
+  if (g==='dia') return fecha;
+  const d=new Date(fecha+'T00:00:00Z'); const wd=(d.getUTCDay()+6)%7; return iso(new Date(d-wd*864e5)); // lunes
+}
+function grainLbl(k, g){ return g==='mes'? mesLbl(k) : g==='dia' ? k.slice(8,10)+'/'+k.slice(5,7) : 'Sem '+k.slice(8,10)+'/'+k.slice(5,7); }
+
+// ---------- vistas ----------
+function kpiCards(a){
+  const pend = a.np ? `${fInt(a.np)} envíos sin reporte de leads aún` : 'Todos los envíos con reporte';
+  return el('div',{class:'kpis'},
+    el('div',{class:'card kpi'}, el('div',{class:'k'},'Envíos (Q base)'), el('div',{class:'v'},fBig(a.q)), el('div',{class:'n'},`${fInt(a.n)} campañas`)),
+    el('div',{class:'card kpi'}, el('div',{class:'k'},'Leads'), el('div',{class:'v'},fInt(a.leads)), el('div',{class:'n'},pend)),
+    el('div',{class:'card kpi'}, el('div',{class:'k'},'CTA'), el('div',{class:'v'},fCTA(a.cta)), el('div',{class:'n'},'Leads ÷ Q base reportada')),
+    el('div',{class:'card kpi'}, el('div',{class:'k'},'PV'), el('div',{class:'v'},fInt(a.pv)), el('div',{class:'n'},'Ventas')),
+    el('div',{class:'card kpi'}, el('div',{class:'k'},'%Efect'), el('div',{class:'v'},fPct(a.ef)), el('div',{class:'n'},'PV ÷ Leads')),
+  );
+}
+
+function trendCard(rows, seriesBy){
+  const card = el('div',{class:'card'});
+  const sel = el('div',{class:'row'});
+  for (const [k,m] of Object.entries(METRICS)) sel.append(el('button',{class:'chip','aria-pressed':String(S.trendMetric===k), onclick:()=>{S.trendMetric=k; update();}}, m.lbl));
+  const gsel = el('select',{onchange:e=>{S.trendGrain=e.target.value; update();}},
+    ...[['dia','Por día'],['semana','Por semana'],['mes','Por mes']].map(([v,t])=>{const o=el('option',{value:v},t); if(S.trendGrain===v) o.selected=true; return o;}));
+  card.append(el('div',{class:'ctitle'}, el('h2',{},'Evolución'), el('div',{class:'row'}, sel, gsel)));
+  const box = el('div',{class:'chartbox'}, el('canvas'));
+  card.append(box);
+  queueMicrotask(()=>{
+    const m = METRICS[S.trendMetric], g=S.trendGrain;
+    const keys = [...new Set(rows.map(r=>grainKey(r.fecha,g)))].sort();
+    const labels = keys.map(k=>grainLbl(k,g));
+    const cols = ['--s1','--s2','--s3','--s4','--s5','--s6'];
+    let ds;
+    if (seriesBy){
+      const ORD={SMS:0,RCS:1}; const groups = [...groupBy(rows, seriesBy)].sort((a,b)=>(ORD[a[0]]??9)-(ORD[b[0]]??9) || (a[0]<b[0]?-1:1));
+      ds = groups.map(([name, rs],i)=>{ const gm=groupBy(rs, r=>grainKey(r.fecha,g)); return {label:name, data:keys.map(k=>gm.has(k)?m.get(agg(gm.get(k))):null), backgroundColor:css(cols[i]), borderColor:css(cols[i])}; });
+    } else {
+      const gm = groupBy(rows, r=>grainKey(r.fecha,g));
+      ds = [{label:m.lbl, data:keys.map(k=>m.get(agg(gm.get(k)))), backgroundColor:css('--s1'), borderColor:css('--s1')}];
+    }
+    if (g==='dia') lineChart(box.firstChild, labels, ds, m.fmt); else barChart(box.firstChild, labels, ds, m.fmt);
+  });
+  return card;
+}
+
+function horaCard(rows){
+  const card = el('div',{class:'card'});
+  card.append(el('div',{class:'ctitle'}, el('h2',{},'CTA por hora de envío'), el('span',{class:'hint'},'Solo envíos con leads reportados')));
+  const box = el('div',{class:'chartbox'}, el('canvas')); card.append(box);
+  queueMicrotask(()=>{
+    const gm = groupBy(rows.filter(r=>r.hora), r=>r.hora.slice(0,2)+':00');
+    const keys=[...gm.keys()].sort();
+    barChart(box.firstChild, keys, [{label:'CTA', data:keys.map(k=>agg(gm.get(k)).cta), backgroundColor:css('--s1')}], fCTA);
+  });
+  return card;
+}
+
+// Tabla Producto x Mes (equivalente a la tabla dinámica TD_KPI)
+function pivotCard(rows, title='Producto × Mes', dimFn=r=>r.producto, dimLbl='Producto'){
+  const card = el('div',{class:'card section'});
+  card.append(el('div',{class:'ctitle'}, el('h2',{},title), el('span',{class:'hint'},'Leads · CTA · %Efect')));
+  const meses = [...new Set(rows.map(r=>mesKey(r.fecha)))].sort();
+  const byDim = groupBy(rows, dimFn);
+  const dims = [...byDim.keys()].sort((a,b)=>agg(byDim.get(b)).leads-agg(byDim.get(a)).leads);
+  const thead = el('thead',{},
+    el('tr',{class:'grp'}, el('th',{},''), ...meses.map(m=>el('th',{colspan:3,class:'sep'},mesLbl(m))), el('th',{colspan:3,class:'sep'},'Total')),
+    el('tr',{}, el('th',{},dimLbl), ...[...meses,'T'].flatMap(()=>[el('th',{class:'sep'},'Leads'),el('th',{},'CTA'),el('th',{},'%Efect')])));
+  const cells = a => [el('td',{class:'sep'}, a.np===a.n?el('span',{class:'pend'},'pend.'):fInt(a.leads)), el('td',{},fCTA(a.cta)), el('td',{},fPct(a.ef))];
+  const tbody = el('tbody');
+  for (const d of dims){
+    const rs = byDim.get(d), gm = groupBy(rs, r=>mesKey(r.fecha));
+    tbody.append(el('tr',{}, el('td',{},d), ...meses.flatMap(m=>gm.has(m)?cells(agg(gm.get(m))):[el('td',{class:'sep'},''),el('td'),el('td')]), ...cells(agg(rs))));
+  }
+  const gm = groupBy(rows, r=>mesKey(r.fecha));
+  tbody.append(el('tr',{class:'total'}, el('td',{},'Total general'), ...meses.flatMap(m=>cells(agg(gm.get(m)))), ...cells(agg(rows))));
+  card.append(el('div',{class:'tablewrap'}, el('table',{}, thead, tbody)));
+  return card;
+}
+
+// Ranking por base / tipo (ordenable)
+function rankCard(rows, title, dimFn, dimLbl){
+  const card = el('div',{class:'card'});
+  card.append(el('div',{class:'ctitle'}, el('h2',{},title), el('span',{class:'hint'},'Clic en una columna para ordenar')));
+  const g = [...groupBy(rows, dimFn)].map(([k,rs])=>({k, ...agg(rs)}));
+  const cols = [['k',dimLbl,v=>v],['n','Camp.',fInt],['q','Q base',fBig],['leads','Leads',fInt],['cta','CTA',fCTA],['pv','PV',fInt],['ef','%Efect',v=>fPct(v)]];
+  const st = S.baseSort;
+  g.sort((a,b)=>{ const x=a[st.k], y=b[st.k]; if (x==null) return 1; if (y==null) return -1; return (x<y?-1:x>y?1:0)*st.d; });
+  const thead = el('thead',{}, el('tr',{}, ...cols.map(([k,l])=>el('th',{class:'sortable', onclick:()=>{ S.baseSort = {k, d: st.k===k? -st.d : -1}; update(); }}, l+(st.k===k?(st.d<0?' ↓':' ↑'):'')))));
+  const tbody = el('tbody',{}, ...g.map(r=>el('tr',{}, ...cols.map(([k,,f])=>el('td',{},f(r[k]))))));
+  card.append(el('div',{class:'tablewrap', style:'max-height:420px;overflow-y:auto'}, el('table',{}, thead, tbody)));
+  return card;
+}
+
+function viewCanal(){
+  const rows = filt(baseRows());
+  const v = $('#view'); v.innerHTML='';
+  if (!rows.length){ v.append(el('div',{class:'card empty'},'No hay envíos con estos filtros.')); return; }
+  const a = agg(rows);
+  v.append(kpiCards(a));
+  v.append(el('div',{class:'grid2'}, trendCard(rows, null), horaCard(rows)));
+  v.append(pivotCard(rows));
+  const dimTipo = S.view==='rcs' ? 'Pool' : 'Tipo';
+  v.append(el('div',{class:'grid2 eq section'},
+    rankCard(rows, 'Ranking por base', r=>r.base||'(sin base)', 'Base'),
+    pivotCard(rows, `${dimTipo} × Mes`, r=>r.tipo, dimTipo)));
+}
+
+function viewAll(){
+  const rows = filt(baseRows());
+  const v = $('#view'); v.innerHTML='';
+  if (!rows.length){ v.append(el('div',{class:'card empty'},'No hay envíos con estos filtros.')); return; }
+  v.append(kpiCards(agg(rows)));
+  // tabla por canal
+  const card = el('div',{class:'card section'});
+  card.append(el('div',{class:'ctitle'}, el('h2',{},'SMS vs RCS')));
+  const byC = groupBy(rows, r=>r.canal);
+  const cols=[['Canal'],['Camp.'],['Q base'],['Leads'],['CTA'],['PV'],['%Efect']];
+  const tb = el('tbody');
+  for (const c of ['SMS','RCS']) if (byC.has(c)){ const a=agg(byC.get(c)); tb.append(el('tr',{}, el('td',{},c), el('td',{},fInt(a.n)), el('td',{},fBig(a.q)), el('td',{},fInt(a.leads)), el('td',{},fCTA(a.cta)), el('td',{},fInt(a.pv)), el('td',{},fPct(a.ef)))); }
+  const t=agg(rows); tb.append(el('tr',{class:'total'}, el('td',{},'Total'), el('td',{},fInt(t.n)), el('td',{},fBig(t.q)), el('td',{},fInt(t.leads)), el('td',{},fCTA(t.cta)), el('td',{},fInt(t.pv)), el('td',{},fPct(t.ef))));
+  card.append(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{}, el('tr',{}, ...cols.map(([c])=>el('th',{},c)))), tb)));
+  v.append(card);
+  v.append(el('div',{class:'section'}, trendCard(rows, r=>r.canal)));
+  v.append(pivotCard(rows, 'Producto × Mes (SMS + RCS)'));
+}
+
+// Comparativo de dos periodos (equivalente a TD_COMP)
+function viewCmp(){
+  const v = $('#view'); v.innerHTML='';
+  const src = S.cmpCanal==='SMS'?ROWS.sms : S.cmpCanal==='RCS'?ROWS.rcs : [...ROWS.sms,...ROWS.rcs];
+  const head = el('div',{class:'card section'});
+  head.append(el('div',{class:'ctitle'}, el('h2',{},'Comparar dos periodos'),
+    el('div',{class:'row'}, ...['SMS','RCS','SMS + RCS'].map(c=>el('button',{class:'chip','aria-pressed':String(S.cmpCanal===c), onclick:()=>{S.cmpCanal=c; renderFilters(); update();}}, c)))));
+  const per = (P, cls, name) => {
+    const c = el('div',{class:`card ${cls}`});
+    const f = el('input',{type:'date', value:P.from, onchange:e=>{P.from=e.target.value; update();}});
+    const t = el('input',{type:'date', value:P.to, onchange:e=>{P.to=e.target.value; update();}});
+    const pr = el('div',{class:'row'});
+    for (const [lbl,a,b] of presetsFor(null, src)) pr.append(el('button',{class:'chip','aria-pressed':String(P.from===a&&P.to===b), onclick:()=>{P.from=a;P.to=b;update();}}, lbl));
+    // meses rápidos
+    const meses=[...new Set(src.map(r=>mesKey(r.fecha)))].sort();
+    const mr = el('div',{class:'row'});
+    for (const m of meses){ const a=m+'-01', b=iso(new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0))); mr.append(el('button',{class:'chip','aria-pressed':String(P.from===a&&P.to===b), onclick:()=>{P.from=a;P.to=b;update();}}, mesLbl(m))); }
+    c.append(el('div',{class:'fgroup'}, el('span',{class:'flabel'},name), el('div',{class:'row'}, f, el('span',{class:'pend'},'a'), t), pr, mr));
+    return c;
+  };
+  v.append(head);
+  v.append(el('div',{class:'cmp-periods'}, per(S.A,'pA','Periodo A'), per(S.B,'pB','Periodo B')));
+  const rA = filt(src, S.A.from, S.A.to), rB = filt(src, S.B.from, S.B.to);
+  const aA = agg(rA), aB = agg(rB);
+  const delta = (x,y,isRate) => { if (x==null||y==null) return el('td',{},'—'); if (isRate){ let d=(y-x); if (Math.abs(d)<(isRate==='cta'?5e-7:5e-4)) d=0; const pp = (d*100).toLocaleString('es-PE',{maximumFractionDigits:isRate==='cta'?4:1, minimumFractionDigits:isRate==='cta'?4:1}); return el('td',{class:d>0?'up':d<0?'down':''}, (d>0?'+':'')+pp+' pp'); } if (!x) return el('td',{},'—'); const p=(y-x)/x; return el('td',{class:p>0?'up':p<0?'down':''}, (p>0?'+':'')+fPct(p)); };
+  // tabla resumen
+  const kc = el('div',{class:'card section'});
+  kc.append(el('div',{class:'ctitle'}, el('h2',{},'Resumen'), el('div',{class:'legend'}, el('span',{},el('i',{style:'background:var(--s1)'}),`A: ${fDate(S.A.from)} – ${fDate(S.A.to)}`), el('span',{},el('i',{style:'background:var(--s2)'}),`B: ${fDate(S.B.from)} – ${fDate(S.B.to)}`))));
+  const rowsK = [['Envíos (Q base)','q',fBig,false],['Campañas','n',fInt,false],['Leads','leads',fInt,false],['CTA','cta',fCTA,'cta'],['PV','pv',fInt,false],['%Efect','ef',v=>fPct(v),'ef']];
+  kc.append(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{}, el('tr',{}, el('th',{},'Indicador'), el('th',{},'Periodo A'), el('th',{},'Periodo B'), el('th',{},'Variación B vs A'))),
+    el('tbody',{}, ...rowsK.map(([l,k,f,r])=>el('tr',{}, el('td',{},l), el('td',{},f(aA[k])), el('td',{},f(aB[k])), delta(aA[k],aB[k],r)))))));
+  v.append(kc);
+  // por producto
+  const pc = el('div',{class:'card section'});
+  pc.append(el('div',{class:'ctitle'}, el('h2',{},'Por producto')));
+  const gA=groupBy(rA,r=>r.producto), gB=groupBy(rB,r=>r.producto);
+  const prods=[...new Set([...gA.keys(),...gB.keys()])].sort();
+  const z = {n:0,np:0,q:0,qr:0,leads:0,pv:0,cta:null,ef:null};
+  const th = el('thead',{}, el('tr',{class:'grp'}, el('th',{},''), el('th',{colspan:3,class:'sep'},'Leads'), el('th',{colspan:3,class:'sep'},'CTA'), el('th',{colspan:3,class:'sep'},'%Efect')),
+    el('tr',{}, el('th',{},'Producto'), ...['Leads','CTA','%Efect'].flatMap(()=>[el('th',{class:'sep'},'A'), el('th',{},'B'), el('th',{},'Var.')])));
+  const tr = (name, a, b, cls) => el('tr',{class:cls||''}, el('td',{},name),
+    el('td',{class:'sep'},fInt(a.leads)), el('td',{},fInt(b.leads)), delta(a.leads,b.leads,false),
+    el('td',{class:'sep'},fCTA(a.cta)), el('td',{},fCTA(b.cta)), delta(a.cta,b.cta,'cta'),
+    el('td',{class:'sep'},fPct(a.ef)), el('td',{},fPct(b.ef)), delta(a.ef,b.ef,'ef'));
+  const tb = el('tbody',{}, ...prods.map(p=>tr(p, gA.has(p)?agg(gA.get(p)):z, gB.has(p)?agg(gB.get(p)):z)), tr('Total', aA, aB, 'total'));
+  pc.append(el('div',{class:'tablewrap'}, el('table',{}, th, tb)));
+  v.append(pc);
+  // gráfico
+  const gc = el('div',{class:'card section'});
+  gc.append(el('div',{class:'ctitle'}, el('h2',{},'CTA por producto: A vs B')));
+  const box = el('div',{class:'chartbox'}, el('canvas')); gc.append(box); v.append(gc);
+  queueMicrotask(()=>barChart(box.firstChild, prods, [
+    {label:'Periodo A', data:prods.map(p=>gA.has(p)?agg(gA.get(p)).cta:null), backgroundColor:css('--s1')},
+    {label:'Periodo B', data:prods.map(p=>gB.has(p)?agg(gB.get(p)).cta:null), backgroundColor:css('--s2')}], fCTA));
+}
+
+function update(){
+  killCharts();
+  renderFilters();
+  if (S.view==='cmp') viewCmp(); else if (S.view==='all') viewAll(); else viewCanal();
+  try { localStorage.setItem('dash-view', S.view); } catch(e){}
+}
+
+function setView(v){
+  S.view = v;
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.v===v)));
+  // reiniciar productos/tipos para el canal elegido
+  const rows = v==='rcs'?ROWS.rcs : v==='sms'?ROWS.sms : [...ROWS.sms,...ROWS.rcs];
+  S.prods = new Set(rows.map(r=>r.producto));
+  S.tipos = new Set(rows.map(r=>r.tipo));
+  update();
+}
+
+// ---------- init ----------
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setView(t.dataset.v)));
+$('#dFrom').addEventListener('change', e=>{S.from=e.target.value; update();});
+$('#dTo').addEventListener('change', e=>{S.to=e.target.value; update();});
+$('#themeBtn').addEventListener('click', ()=>{
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.documentElement.dataset.theme = cur==='dark'?'light':'dark';
+  try{ localStorage.setItem('dash-theme', document.documentElement.dataset.theme);}catch(e){}
+  update();
+});
+try { const t=localStorage.getItem('dash-theme'); if (t) document.documentElement.dataset.theme=t; } catch(e){}
+
+fetch('data.json?v='+Date.now(), {cache:'no-store'}).then(r=>r.json()).then(d=>{
+  DATA = d;
+  const mk = (arr, canal) => arr.map(x=>{ const o={canal}; d.campos.forEach((c,i)=>o[c]=x[i]); return o; });
+  ROWS.sms = mk(d.sms,'SMS'); ROWS.rcs = mk(d.rcs,'RCS');
+  const g = new Date(d.generado);
+  $('#updated').textContent = `Datos actualizados: ${g.toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})}, ${g.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})} · desde mayo 2026`;
+  // periodo por defecto: mes actual (o el último con datos)
+  const all=[...ROWS.sms,...ROWS.rcs];
+  const pr = presetsFor(null, all);
+  [S.from, S.to] = [pr[0][1], pr[0][2]];
+  // comparativo por defecto: mes anterior vs mes actual
+  S.A = {from:pr[1][1], to:pr[1][2]}; S.B = {from:pr[0][1], to:pr[0][2]};
+  let v='sms'; try{ v = localStorage.getItem('dash-view')||'sms'; }catch(e){}
+  setView(['sms','rcs','all','cmp'].includes(v)?v:'sms');
+}).catch(e=>{ $('#updated').textContent='No se pudo cargar data.json: '+e.message; });
+
+})();
+</script>
+</body>
+</html>
